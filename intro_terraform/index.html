@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Intro to Terraform</title>
+<meta name="author" content="(Ricardo Hernandez)"/>
+<style type="text/css">
+.underline { text-decoration: underline; }
+</style>
+<link rel="stylesheet" href="./reveal.js/css/reveal.css"/>
+
+<link rel="stylesheet" href="./reveal.js/css/theme/moon.css" id="theme"/>
+
+
+<!-- If the query includes 'print-pdf', include the PDF print sheet -->
+<script>
+    if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = './reveal.js/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+    }
+</script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section id="sec-title-slide"><h1>Intro to Terraform</h1><h2>Ricardo Hernandez</h2>
+</section>
+
+<section>
+<section id="slide-orga544f2b">
+<h2 id="orga544f2b">What is Terraform?</h2>
+<ul>
+<li>IaC (Infrastructure as Code) platform.</li>
+<li>Broker to many cloud resource providers (AWS, GCE, Azure).</li>
+<li>Created by Hashicorp.</li>
+
+</ul>
+<aside class="notes">
+<ul>
+<li>Used to represent in code the provisioning and state of remote resources.</li>
+<li>Hashicorp, same guys as Vagrant, Packer and Consul.</li>
+
+</ul>
+
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-org968834b">
+<h2 id="org968834b">What tries to solve?</h2>
+<ul>
+<li>Multi cloud provisioning orchestration.</li>
+<li>Set a fixed state along all cloud resources.</li>
+<li>Enables collaboration for managing infrastructure.</li>
+<li>Abstracts resource providers APIs presenting a single language to configure all.</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-org3d57b00">
+<h2 id="org3d57b00">Features</h2>
+<ul>
+<li>It has support for many <a href="https://www.terraform.io/docs/providers/index.html">providers</a> and implements most of the API calls to many of them.</li>
+<li>As right now is the <i>de facto</i> standard for cloud independent IaC.</li>
+<li>Flexible language with notions of modules to have reusable code.</li>
+<li>Written in Go. Easy to install and update.</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-org3ea7047">
+<h2 id="org3ea7047">Core concepts</h2>
+<div class="outline-text-2" id="text-org3ea7047">
+</div></section>
+<section id="slide-org97464b2">
+<h3 id="org97464b2"><a href="https://www.terraform.io/docs/state/index.html">State file</a></h3>
+<p>
+Maintains the state of every resource and their relationship, as known by Terraform. Is updated after creating, modifying or destroying resources.
+</p>
+</section>
+<section >
+<ul>
+<li>Is the "source of truth" for Terraform.</li>
+<li>Saved locally or on remote storage.</li>
+<li>JSON format.</li>
+<li>Not good for <a href="https://www.terraform.io/docs/state/sensitive-data.html">sensitive data</a>.</li>
+<li><code>terraform state</code></li>
+
+</ul>
+<aside class="notes">
+<ul>
+<li>Have always the information of resources defined on Terraform code but not necessarily on the provider.</li>
+<li><code>terraform apply</code>, <code>terraform destroy</code></li>
+<li>Given that is in JSON you might think will be a good idea to parse it but it's not meant to do it. Better to use outputs and parse those. <b>Clean API</b></li>
+<li>Secrets on plain text. No client-side encryption.</li>
+
+</ul>
+
+</aside>
+</section>
+<section id="slide-org49ce1d9">
+<h4 id="org49ce1d9"><a href="https://www.terraform.io/docs/state/remote.html">Remote state</a></h4>
+<ul>
+<li>The state file can be stored on remote storage in order to allow <b>collaboration</b> and in some cases provide <b>locking</b>.</li>
+<li>Supports many <a href="https://www.terraform.io/docs/backends/types/index.html">backends</a>. Feature complete are: S3, Consul and Terraform Enterprise.</li>
+
+</ul>
+</section>
+<section id="slide-orgc3edf0b">
+<h3 id="orgc3edf0b"><a href="https://www.terraform.io/docs/configuration/syntax.html">HCL</a> (Hashicorp configuration language)</h3>
+<div class="outline-text-3" id="text-orgc3edf0b">
+</div></section>
+<section id="slide-org6727cf5">
+<h4 id="org6727cf5"><a href="https://www.terraform.io/docs/configuration/providers.html">Providers</a></h4>
+<ul>
+<li>Providers of resources.</li>
+<li>AWS, GCE, Azure, DNSimple, etc.</li>
+<li>Allows having multiple instances of the same provider through <b>aliasing</b>.</li>
+
+</ul>
+</section>
+<section id="slide-org1fb6a85">
+<h4 id="org1fb6a85"><a href="https://www.terraform.io/docs/configuration/resources.html">Resources</a></h4>
+<ul>
+<li>Resources provided by <i>Providers</i>.</li>
+<li>Dependencies between resources are managed automatically.</li>
+<li>Meta-parameters for all resources like <b>count</b>.</li>
+
+</ul>
+<aside class="notes">
+<ul>
+<li>Show aws ec2 instance resource: <a href="https://www.terraform.io/docs/providers/aws/r/instance.html">https://www.terraform.io/docs/providers/aws/r/instance.html</a>. Talk about the use of count.</li>
+<li>Talk about the relationship between resources. Show inputs (variables) and outputs on the docs.</li>
+
+</ul>
+
+</aside>
+</section>
+<section id="slide-orgb2ee679">
+<h4 id="orgb2ee679"><a href="https://www.terraform.io/docs/configuration/variables.html">Variables</a></h4>
+<ul>
+<li>Explicitely defined or automatically computed (attributes).</li>
+<li>Types: string, list, map, booleans (as strings).</li>
+<li>Can be defined on external files.</li>
+<li><code>${var.name}</code></li>
+
+</ul>
+<aside class="notes">
+<p>
+Talk a little bit about the interpolation syntax <a href="https://www.terraform.io/docs/configuration/interpolation.html">https://www.terraform.io/docs/configuration/interpolation.html</a>
+</p>
+
+</aside>
+</section>
+<section id="slide-org221bf57">
+<h4 id="org221bf57"><a href="https://www.terraform.io/docs/configuration/outputs.html">Outputs</a></h4>
+<ul>
+<li>Explicitely defined outputs to allow:
+<ul>
+<li>Reading/Parsing data from third-party apps</li>
+<li>Consume data from one state file to use it on "external" Terraform code.</li>
+<li><code>terraform output</code></li>
+
+</ul></li>
+
+</ul>
+<aside class="notes">
+<ul>
+<li>Show that the state file has the outputs</li>
+
+</ul>
+
+</aside>
+</section>
+<section id="slide-org91fdab1">
+<h4 id="org91fdab1"><a href="https://www.terraform.io/docs/configuration/data-sources.html">Data sources</a></h4>
+<ul>
+<li>Data that can be read from providers without being created by Terraform.</li>
+<li>Examples:
+<ul>
+<li>Obtain a list of availability zones on a region.</li>
+<li>Obtain ID of the last version of AMI image for Ubuntu 16.04.</li>
+
+</ul></li>
+
+</ul>
+<aside class="notes">
+<ul>
+<li>Show availability zones as an example: <a href="https://www.terraform.io/docs/providers/aws/d/availability_zones.html">https://www.terraform.io/docs/providers/aws/d/availability_zones.html</a></li>
+
+</ul>
+
+</aside>
+</section>
+<section id="slide-org505eb57">
+<h4 id="org505eb57"><a href="https://www.terraform.io/docs/provisioners/index.html">Provisioners</a></h4>
+<ul>
+<li>Run a provisioner after creating or updating a resource to configure it. For example running Chef after creating an instance.</li>
+<li>Can also run only on creation or only on destruction.</li>
+<li>Chef, remote-exec (ssh or WinRM), local-exec, file upload.</li>
+<li><a href="https://www.terraform.io/docs/provisioners/null_resource.html">null_resource</a></li>
+
+</ul>
+</section>
+<section id="slide-org0f72aa9">
+<h4 id="org0f72aa9"><a href="https://www.terraform.io/docs/configuration/modules.html">Modules</a></h4>
+<ul>
+<li>Used to create reusable components.</li>
+<li>Can live outside the main Terraform code and can (should) be versioned.</li>
+<li>Have a well defined API with inputs (variables) and outputs.</li>
+<li>Can include other modules.</li>
+
+</ul>
+</section>
+</section>
+<section>
+<section id="slide-orgc2e6228">
+<h2 id="orgc2e6228">Caveats</h2>
+<ul>
+<li>Doesn't handle secrets properly.</li>
+<li>No stable version yet. Very quick development pace.</li>
+<li>No ACL or RBAC integrated. Terraform enterprise has something.</li>
+<li>No way of unit/integration testing without actually trying on a real account.</li>
+<li>A little bit difficult to integrate on already existing infrastructure.</li>
+
+</ul>
+<aside class="notes">
+<ul>
+<li>So every sensitive information is in plain text on the plan and state file.</li>
+<li>An approach to unit testing could be using Moto: <a href="https://github.com/spulec/moto">https://github.com/spulec/moto</a></li>
+
+</ul>
+
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-org3849e1b">
+<h2 id="org3849e1b">DEMOS</h2>
+<div class="outline-text-2" id="text-org3849e1b">
+</div></section>
+<section id="slide-orga2bb939">
+<h3 id="orga2bb939">Common settings</h3>
+<ul>
+<li><b>VPC</b>: 192.168.1.0/24</li>
+<li><b>Subnets</b>: 
+<ul>
+<li>az1: 192.168.1.0/26</li>
+<li>az2: 192.168.1.64/26</li>
+<li>az3: 192.168.1.128/26</li>
+
+</ul></li>
+<li><b>Ubuntu AMI id</b>: ami-dbbd9dbe</li>
+<li><b>Security group</b>: Allow ip x.x.x.x to access port tcp 9999</li>
+
+</ul>
+<aside class="notes">
+<p>
+AMI ID: <a href="https://cloud-images.ubuntu.com/locator/ec2/">https://cloud-images.ubuntu.com/locator/ec2/</a>
+</p>
+
+</aside>
+</section>
+<section id="slide-org45cf131">
+<h3 id="org45cf131">Basic</h3>
+<ul>
+<li>Local state.</li>
+<li>Hardcoded values.</li>
+<li>1 VPC, 2 subnets on different azs, 1 security group</li>
+<li>1 EC2 SSH Key, 1 t2.nano instance using predefined Ubuntu 16.04 AMI</li>
+<li>Plan, apply, destroy.</li>
+
+</ul>
+<aside class="notes">
+<ol>
+<li><code>terraform init</code></li>
+<li><code>terraform plan -out basic.plan</code></li>
+<li><code>terraform apply basic.plan</code></li>
+<li>Take a look at the AWS web console.</li>
+<li>Take a look at the state file.</li>
+<li><code>terraform destroy</code></li>
+<li>Take a look at the AWS web console.</li>
+<li>Take a look at the state file.
+9.1. <code>terraform state list</code>, <code>terraform state show aws_vpc.main</code></li>
+<li>Run <code>terraform output</code> to see there are no outputs configured.</li>
+<li>Add an explicit error. Change root block device from 10 to 5</li>
+<li><code>terraform plan -out first.plan</code> again to check if all the changes will need to be applied.</li>
+<li>Add an explicity change. Change ip on security group.</li>
+<li><code>terraform plan -out second.plan</code></li>
+<li>Remove a resource by commenting it.</li>
+<li><code>terraform plan -out fix.plan</code></li>
+<li><code>terraform apply fix.plan</code></li>
+<li><code>terraform destroy</code></li>
+
+</ol>
+
+</aside>
+</section>
+<section id="slide-orgc402598">
+<h3 id="orgc402598">Advanced</h3>
+<ul>
+<li>Local state.</li>
+<li>Variables and var-file.</li>
+<li>3 subnets, one per AZ.</li>
+<li>1 EC2 SSH Key, 2 instances.</li>
+<li>Use a data source to get the latest Ubuntu 16.04 AMI.</li>
+<li>Output VPC cidr block, the ami id, subnet_2b cidr, the instance private dns names.</li>
+<li>Plan, apply, destroy.</li>
+
+</ul>
+<aside class="notes">
+<ol>
+<li><code>terraform init</code></li>
+<li><code>terraform plan -out advanced.plan</code></li>
+<li><code>terraform plan -var-file=prod.tfvars -out advanced.plan</code></li>
+<li>Look at count and interpolation</li>
+<li><code>terraform apply advanced.plan</code></li>
+<li>Take a look at the AWS web console</li>
+<li>Take a look at the state file. <code>terraform state list</code>. Make attention to the differences of having count and the outputs entry.</li>
+<li><code>terraform output</code></li>
+<li><code>terraform plan -var-file=prod.tfvars --destroy -out prod.destroy</code></li>
+<li><code>terraform apply prod.destroy</code></li>
+
+</ol>
+
+</aside>
+</section>
+</section>
+<section>
+<section id="slide-org94e1bc3">
+<h2 id="org94e1bc3">Topics for future talks</h2>
+<ul>
+<li>More interpolation functions</li>
+<li>Provisioners</li>
+<li>Modules</li>
+<li>Importing resources</li>
+<li>Remote state</li>
+<li>Workspaces</li>
+<li>Development workflow</li>
+
+</ul>
+</section>
+</section>
+</div>
+</div>
+<script src="./reveal.js/lib/js/head.min.js"></script>
+<script src="./reveal.js/js/reveal.js"></script>
+
+<script>
+// Full list of configuration options available here:
+// https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+
+controls: true,
+progress: true,
+history: false,
+center: true,
+slideNumber: 'c',
+rollingLinks: false,
+keyboard: true,
+overview: true,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+transitionSpeed: 'default',
+multiplex: {
+    secret: '', // null if client
+    id: '', // id, obtained from socket.io server
+    url: '' // Location of socket.io server
+},
+
+// Optional libraries used to extend on reveal.js
+dependencies: [
+ { src: './reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+ { src: './reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: './reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+ { src: './reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+ { src: './reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }]
+});
+</script>
+</body>
+</html>

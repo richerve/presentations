@@ -1,0 +1,4 @@
+* Basic demo
+It uses the default settings for the aws provider so it will pick /us-east-1/ as region and use credentials from the /default/ profile or from env variables. If you want to select different options for the provider, just add a *provider* block as described here: https://www.terraform.io/docs/configuration/providers.html.
+
+The ssh public key is for demo purposes and I'm not including the private key here. You can of course change it to a different one.

@@ -1,0 +1,164 @@
+#+OPTIONS: num:nil toc:nil reveal_title_slide:"<h1>%t</h1><h2>%a</h2>"
+
+#+Title: Intro to Terraform
+#+Author: Ricardo Hernandez
+
+* What is Terraform?
+- IaC (Infrastructure as Code) platform.
+- Broker to many cloud resource providers (AWS, GCE, Azure).
+- Created by Hashicorp.
+#+BEGIN_NOTES
+- Used to represent in code the provisioning and state of remote resources.
+- Hashicorp, same guys as Vagrant, Packer and Consul.
+#+END_NOTES
+* What tries to solve?
+- Multi cloud provisioning orchestration.
+- Set a fixed state along all cloud resources.
+- Enables collaboration for managing infrastructure.
+- Abstracts resource providers APIs presenting a single language to configure all.
+* Features
+- It has support for many [[https://www.terraform.io/docs/providers/index.html][providers]] and implements most of the API calls to many of them.
+- As right now is the /de facto/ standard for cloud independent IaC.
+- Flexible language with notions of modules to have reusable code.
+- Written in Go. Easy to install and update.
+* Core concepts 
+** [[https://www.terraform.io/docs/state/index.html][State file]] 
+Maintains the state of every resource and their relationship, as known by Terraform. Is updated after creating, modifying or destroying resources.
+#+REVEAL: split
+- Is the "source of truth" for Terraform. 
+- Saved locally or on remote storage.
+- JSON format.
+- Not good for [[https://www.terraform.io/docs/state/sensitive-data.html][sensitive data]].
+- =terraform state=
+#+BEGIN_NOTES
+- Have always the information of resources defined on Terraform code but not necessarily on the provider.
+- =terraform apply=, =terraform destroy=
+- Given that is in JSON you might think will be a good idea to parse it but it's not meant to do it. Better to use outputs and parse those. *Clean API*
+- Secrets on plain text. No client-side encryption.
+#+END_NOTES 
+*** [[https://www.terraform.io/docs/state/remote.html][Remote state]]
+- The state file can be stored on remote storage in order to allow *collaboration* and in some cases provide *locking*.
+- Supports many [[https://www.terraform.io/docs/backends/types/index.html][backends]]. Feature complete are: S3, Consul and Terraform Enterprise.
+** [[https://www.terraform.io/docs/configuration/syntax.html][HCL]] (Hashicorp configuration language)
+*** [[https://www.terraform.io/docs/configuration/providers.html][Providers]]
+- Providers of resources.
+- AWS, GCE, Azure, DNSimple, etc.
+- Allows having multiple instances of the same provider through *aliasing*.
+*** [[https://www.terraform.io/docs/configuration/resources.html][Resources]] 
+- Resources provided by /Providers/.
+- Dependencies between resources are managed automatically.
+- Meta-parameters for all resources like *count*.
+#+BEGIN_NOTES
+- Show aws ec2 instance resource: https://www.terraform.io/docs/providers/aws/r/instance.html. Talk about the use of count.
+- Talk about the relationship between resources. Show inputs (variables) and outputs on the docs.
+#+END_NOTES
+*** [[https://www.terraform.io/docs/configuration/variables.html][Variables]] 
+- Explicitely defined or automatically computed (attributes).
+- Types: string, list, map, booleans (as strings).
+- Can be defined on external files.
+- =${var.name}=
+#+BEGIN_NOTES
+Talk a little bit about the interpolation syntax https://www.terraform.io/docs/configuration/interpolation.html
+#+END_NOTES
+*** [[https://www.terraform.io/docs/configuration/outputs.html][Outputs]] 
+- Explicitely defined outputs to allow:
+  - Reading/Parsing data from third-party apps
+  - Consume data from one state file to use it on "external" Terraform code.
+  - =terraform output=
+#+BEGIN_NOTES
+- Show that the state file has the outputs
+#+END_NOTES
+*** [[https://www.terraform.io/docs/configuration/data-sources.html][Data sources]] 
+- Data that can be read from providers without being created by Terraform.
+- Examples:
+  - Obtain a list of availability zones on a region.
+  - Obtain ID of the last version of AMI image for Ubuntu 16.04.
+#+BEGIN_NOTES
+- Show availability zones as an example: https://www.terraform.io/docs/providers/aws/d/availability_zones.html
+#+END_NOTES
+*** [[https://www.terraform.io/docs/provisioners/index.html][Provisioners]] 
+- Run a provisioner after creating or updating a resource to configure it. For example running Chef after creating an instance.
+- Can also run only on creation or only on destruction.
+- Chef, remote-exec (ssh or WinRM), local-exec, file upload.
+- [[https://www.terraform.io/docs/provisioners/null_resource.html][null_resource]]
+*** [[https://www.terraform.io/docs/configuration/modules.html][Modules]]
+- Used to create reusable components.
+- Can live outside the main Terraform code and can (should) be versioned.
+- Have a well defined API with inputs (variables) and outputs.
+- Can include other modules.
+* Caveats
+- Doesn't handle secrets properly.
+- No stable version yet. Very quick development pace.
+- No ACL or RBAC integrated. Terraform enterprise has something.
+- No way of unit/integration testing without actually trying on a real account.
+- A little bit difficult to integrate on already existing infrastructure.
+#+BEGIN_NOTES
+- So every sensitive information is in plain text on the plan and state file.
+- An approach to unit testing could be using Moto: https://github.com/spulec/moto
+#+END_NOTES
+* DEMOS
+** Common settings
+- *VPC*: 192.168.1.0/24
+- *Subnets*: 
+  - az1: 192.168.1.0/26 
+  - az2: 192.168.1.64/26 
+  - az3: 192.168.1.128/26
+- *Ubuntu AMI id*: ami-dbbd9dbe
+- *Security group*: Allow ip x.x.x.x to access port tcp 9999
+#+BEGIN_NOTES
+AMI ID: https://cloud-images.ubuntu.com/locator/ec2/
+#+END_NOTES
+** Basic
+- Local state.
+- Hardcoded values.
+- 1 VPC, 2 subnets on different azs, 1 security group
+- 1 EC2 SSH Key, 1 t2.nano instance using predefined Ubuntu 16.04 AMI
+- Plan, apply, destroy.
+#+BEGIN_NOTES
+1. =terraform init=
+2. =terraform plan -out basic.plan=
+4. =terraform apply basic.plan=
+5. Take a look at the AWS web console.
+6. Take a look at the state file.
+7. =terraform destroy=
+8. Take a look at the AWS web console.
+9. Take a look at the state file.
+   9.1. =terraform state list=, =terraform state show aws_vpc.main=
+10. Run =terraform output= to see there are no outputs configured.
+11. Add an explicit error. Change root block device from 10 to 5
+12. =terraform plan -out first.plan= again to check if all the changes will need to be applied.
+13. Add an explicity change. Change ip on security group.
+14. =terraform plan -out second.plan=
+15. Remove a resource by commenting it.
+16. =terraform plan -out fix.plan=
+17. =terraform apply fix.plan=
+18. =terraform destroy=
+#+END_NOTES
+** Advanced
+- Local state.
+- Variables and var-file.
+- 3 subnets, one per AZ.
+- 1 EC2 SSH Key, 2 instances.
+- Use a data source to get the latest Ubuntu 16.04 AMI.
+- Output VPC cidr block, the ami id, subnet_2b cidr, the instance private dns names.
+- Plan, apply, destroy.
+#+BEGIN_NOTES
+1. =terraform init=
+2. =terraform plan -out advanced.plan=
+3. =terraform plan -var-file=prod.tfvars -out advanced.plan=
+4. Look at count and interpolation
+5. =terraform apply advanced.plan=
+6. Take a look at the AWS web console
+7. Take a look at the state file. =terraform state list=. Make attention to the differences of having count and the outputs entry.
+8. =terraform output=
+9. =terraform plan -var-file=prod.tfvars --destroy -out prod.destroy=
+10. =terraform apply prod.destroy=
+#+END_NOTES
+* Topics for future talks
+- More interpolation functions
+- Provisioners
+- Modules
+- Importing resources
+- Remote state
+- Workspaces
+- Development workflow

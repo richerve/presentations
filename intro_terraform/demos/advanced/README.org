@@ -1,0 +1,2 @@
+* Advanced demo
+Most of the variables are defined on /vars.tf/ and non default values are specified on /main.tfvars/. In order to use those values is necessary to provide the /-var-file/ option like this: =terraform plan -var-file main.tfvars -out adv.plan=
