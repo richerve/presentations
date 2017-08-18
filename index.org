@@ -1,2 +1,2 @@
 * Presentations
-** [[https://richerve.github.io/presentations/intro_terraform/][Introduction to Terraform]]
+** [[https://richerve.github.io/presentations/intro_terraform/index.html][Introduction to Terraform]]
